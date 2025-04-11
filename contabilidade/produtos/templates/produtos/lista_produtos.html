@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Lista de Produtos</li>
+{% endblock %}
+
+{% block content %}
+  <h1>Lista de Produtos</h1>
+  <ul>
+    {% for produto in produtos %}
+      <li>
+        <a href="{% url 'detalhe_produto' produto.id %}">{{ produto.nome }}</a> - {{ produto.preco }}
+        <a href="{% url 'editar_produto' produto.id %}">Editar</a>
+        <a href="{% url 'excluir_produto' produto.id %}">Excluir</a>
+      </li>
+    {% empty %}
+      <li>Nenhum produto cadastrado.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

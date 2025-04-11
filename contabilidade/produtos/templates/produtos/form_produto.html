@@ -1,0 +1,18 @@
+<!-- produtos/templates/produtos/form.html -->
+{% extends 'core/base.html' %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Cadastro de Produtos</li>
+{% endblock %}
+
+{% block title %}Cadastrar Produto{% endblock %}
+
+{% block content %}
+<h2>Cadastrar Produto</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="{% url 'lista_produtos' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
