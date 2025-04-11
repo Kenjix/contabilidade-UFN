@@ -1,5 +1,10 @@
 {% extends 'core/base.html' %}
 
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/produtos">Produtos</a></li>
+<li class="breadcrumb-item active" aria-current="page">Exclusão de Produto</li>
+{% endblock %}
+
 {% block content %}
   <h2>Excluir Produto</h2>
   <p>Tem certeza que deseja excluir o produto <strong>{{ produto.nome }}</strong>?</p>

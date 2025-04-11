@@ -1,20 +1,50 @@
 {% extends 'core/base.html' %}
 
 {% block breadcrumbs %}
-<li class="breadcrumb-item active" aria-current="page">Lista de Produtos</li>
+<li class="breadcrumb-item active" aria-current="page">Produtos</li>
 {% endblock %}
 
 {% block content %}
-  <h1>Lista de Produtos</h1>
-  <ul>
+<h1>Lista de Produtos</h1>
+
+{% if produtos %}
+<table class="table table-bordered text-center">
+  <thead>
+    <tr>
+      <th scope="col">COD</th>
+      <th scope="col">Nome</th>
+      <th scope="col">Valor de compra</th>
+      <th scope="col">Valor de venda</th>
+      <th scope="col">Ações</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for produto in produtos %}
-      <li>
-        <a href="{% url 'detalhe_produto' produto.id %}">{{ produto.nome }}</a> - {{ produto.preco }}
-        <a href="{% url 'editar_produto' produto.id %}">Editar</a>
-        <a href="{% url 'excluir_produto' produto.id %}">Excluir</a>
-      </li>
-    {% empty %}
-      <li>Nenhum produto cadastrado.</li>
+    <tr>
+      <th scope="row">{{ produto.id }}</th>
+      <td>{{ produto.nome }}</td>
+      <td>R$ {{ produto.preco_compra }}</td>
+      <td>R$ {{ produto.preco_venda }}</td>
+      <td>
+        <a href="{% url 'detalhe_produto' produto.id %}" class="btn btn-sm btn-primary" title="Ver detalhes">
+          <i class="bi bi-eye"></i>
+        </a>
+        <a href="{% url 'editar_produto' produto.id %}" class="btn btn-sm btn-warning" title="Editar">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{% url 'excluir_produto' produto.id %}" class="btn btn-sm btn-danger" title="Excluir">
+          <i class="bi bi-trash"></i>
+        </a>
+      </td>
+    </tr>
     {% endfor %}
-  </ul>
+  </tbody>
+</table>
+<div class="d-flex justify-content-end">
+  <a href="{% url 'cadastrar_produto' %}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">NOVO
+    PRODUTO</a>
+</div>
+{% else %}
+<p>Nenhum produto cadastrado.</p>
+{% endif %}
 {% endblock %}

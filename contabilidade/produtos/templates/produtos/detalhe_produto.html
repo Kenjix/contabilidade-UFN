@@ -1,5 +1,10 @@
 {% extends 'core/base.html' %}
 
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/produtos">Produtos</a></li>
+<li class="breadcrumb-item active" aria-current="page">Detalhes dd Produto</li>
+{% endblock %}
+
 {% block content %}
   <h1>Detalhes do Produto</h1>
   <p><strong>Nome:</strong> {{ produto.nome }}</p>
