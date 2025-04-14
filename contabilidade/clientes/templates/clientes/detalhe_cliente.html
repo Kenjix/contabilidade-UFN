@@ -23,8 +23,19 @@
       <hr>
 
       <div class="mb-4">
-        <h5 class="text-muted">CPF/CNPJ</h5>
-        <p class="fs-5 fw-semibold">{{ cliente.cpf_cnpj }}</p>
+        <h5 class="text-muted">Tipo de Pessoa</h5>
+        <p class="fs-5 fw-semibold">{{ cliente.get_tipo_pessoa_display }}</p>
+      </div>
+
+      <hr>
+
+      <div class="mb-4">
+        <h5 class="text-muted">
+          {% if cliente.tipo_pessoa == 'fisica' %}CPF{% else %}CNPJ{% endif %}
+        </h5>
+        <p class="fs-5 fw-semibold">
+          {% if cliente.tipo_pessoa == 'fisica' %}{{ cliente.cpf }}{% else %}{{ cliente.cnpj }}{% endif %}
+        </p>
       </div>
 
       <hr>

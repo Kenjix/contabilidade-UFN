@@ -13,6 +13,7 @@
     <tr>
       <th scope="col">COD</th>
       <th scope="col">Nome</th>
+      <th scope="col">Tipo de Pessoa</th>
       <th scope="col">CPF/CNPJ</th>
       <th scope="col">Tipo</th>
       <th scope="col">Cidade/UF</th>
@@ -24,7 +25,14 @@
     <tr>
       <th scope="row">{{ cliente.id }}</th>
       <td>{{ cliente.nome }}</td>
-      <td>{{ cliente.cpf_cnpj }}</td>
+      <td>{{ cliente.get_tipo_pessoa_display }}</td>
+      <td>
+        {% if cliente.tipo_pessoa == 'fisica' %}
+          {{ cliente.cpf }}
+        {% else %}
+          {{ cliente.cnpj }}
+        {% endif %}
+      </td>
       <td>{{ cliente.get_tipo_display }}</td>
       <td>{{ cliente.cidade }}/{{ cliente.estado }}</td>
       <td>

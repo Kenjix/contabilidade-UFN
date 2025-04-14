@@ -7,11 +7,13 @@ def lista_clientes(request):
     return render(request, 'clientes/lista_clientes.html', {'clientes': clientes})
 
 def cadastrar_cliente(request):
-    if request.method == 'POST':
+    if request.method == 'POST':        
         form = ClienteFornecedorForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('lista_clientes')
+        else:
+            print(form.errors)
     else:
         form = ClienteFornecedorForm()
     return render(request, 'clientes/cadastrar_cliente.html', {'form': form})
