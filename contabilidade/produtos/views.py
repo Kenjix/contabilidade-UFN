@@ -18,7 +18,6 @@ def cadastrar_produto(request):
 
 def editar_produto(request, id):
     produto = get_object_or_404(Produto, id=id)
-
     if request.method == 'POST':
         form = ProdutoForm(request.POST, instance=produto)
         if form.is_valid():
@@ -26,7 +25,6 @@ def editar_produto(request, id):
             return redirect('lista_produtos')
     else:
         form = ProdutoForm(instance=produto)
-
     return render(request, 'produtos/editar_produto.html', {'form': form})
 
 def detalhe_produto(request, id):

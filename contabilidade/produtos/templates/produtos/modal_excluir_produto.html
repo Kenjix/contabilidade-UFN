@@ -1,0 +1,27 @@
+<!-- Modal de exclusão para cada produto -->
+<div class="modal fade" id="modalExcluir{{ produto.id }}" tabindex="-1" aria-labelledby="modalExcluirLabel{{ produto.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+      
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExcluirLabel{{ produto.id }}">Excluir Produto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+  
+        <div class="modal-body">
+          Tem certeza que deseja excluir <strong>"{{ produto.nome }}"</strong>?
+        </div>
+  
+        <div class="modal-footer">
+          <form method="post" action="{% url 'excluir_produto' produto.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+          </form>
+
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button> 
+        </div>
+  
+      </div>
+    </div>
+  </div>
+  <!-- Fim do modal de exclusão -->

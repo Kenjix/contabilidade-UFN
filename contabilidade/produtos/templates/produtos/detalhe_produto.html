@@ -2,16 +2,45 @@
 
 {% block breadcrumbs %}
 <li class="breadcrumb-item"><a href="/produtos">Produtos</a></li>
-<li class="breadcrumb-item active" aria-current="page">Detalhes dd Produto</li>
+<li class="breadcrumb-item active" aria-current="page">Detalhes do Produto</li>
 {% endblock %}
 
 {% block content %}
-  <h1>Detalhes do Produto</h1>
-  <p><strong>Nome:</strong> {{ produto.nome }}</p>
-  <p><strong>Preço de compra:</strong> {{ produto.preco_compra }}</p>
-  <p><strong>Preço de venda:</strong> R$ {{ produto.preco_venda }}</p>
+<div class="container mt-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-box-seam me-2"></i>Detalhes do Produto
+      </h4>
+    </div>
+    <div class="card-body">
 
-  <a href="{% url 'editar_produto' produto.id %}">Editar</a> |
-  <a href="{% url 'excluir_produto' produto.id %}">Excluir</a> |
-  <a href="{% url 'lista_produtos' %}">Voltar</a>
+      <div class="mb-4">
+        <h5 class="text-muted">Nome do Produto</h5>
+        <p class="fs-5 fw-semibold">{{ produto.nome }}</p>
+      </div>
+
+      <hr>
+
+      <div class="mb-4">
+        <h5 class="text-muted">Preço de Compra</h5>
+        <p class="fs-5 fw-semibold">R$ {{ produto.preco_compra }}</p>
+      </div>
+
+      <hr>
+
+      <div>
+        <h5 class="text-muted">Preço de Venda</h5>
+        <p class="fs-5 fw-semibold">R$ {{ produto.preco_venda }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="mt-4 text-end">
+    <a href="{% url 'lista_produtos' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left-circle me-1"></i> Voltar à Lista
+    </a>
+  </div>
+</div>
 {% endblock %}

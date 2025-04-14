@@ -13,8 +13,8 @@
     <tr>
       <th scope="col">COD</th>
       <th scope="col">Nome</th>
-      <th scope="col">Valor de compra</th>
-      <th scope="col">Valor de venda</th>
+      <th scope="col">Valor de Compra</th>
+      <th scope="col">Valor de Venda</th>
       <th scope="col">Ações</th>
     </tr>
   </thead>
@@ -32,9 +32,10 @@
         <a href="{% url 'editar_produto' produto.id %}" class="btn btn-sm btn-warning" title="Editar">
           <i class="bi bi-pencil"></i>
         </a>
-        <a href="{% url 'excluir_produto' produto.id %}" class="btn btn-sm btn-danger" title="Excluir">
+        <button type="button" class="btn btn-sm btn-danger" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ produto.id }}">
           <i class="bi bi-trash"></i>
-        </a>
+        </button>        
+        {% include 'produtos/modal_excluir_produto.html' with produto=produto %}
       </td>
     </tr>
     {% endfor %}

@@ -1,4 +1,3 @@
-<!-- produtos/templates/produtos/form.html -->
 {% extends 'core/base.html' %}
 
 {% block breadcrumbs %}
@@ -12,8 +11,33 @@
 <h2>Cadastrar Produto</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="{% url 'lista_produtos' %}" class="btn btn-secondary">Cancelar</a>
+    
+    <div class="mb-3">
+        <label for="id_nome" class="form-label">Nome do Produto</label>
+        <input type="text" class="form-control" id="id_nome" name="nome" required>
+    </div>   
+    
+    <div class="mb-3">
+        <label for="id_preco_compra" class="form-label">Preço de Compra</label>
+        <div class="input-group">
+            <span class="input-group-text">R$</span>
+            <input type="number" class="form-control" id="id_preco_compra" name="preco_compra" 
+                   step="0.01" min="0" inputmode="decimal" required>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="id_preco_venda" class="form-label">Preço de Venda</label>
+        <div class="input-group">
+            <span class="input-group-text">R$</span>
+            <input type="number" class="form-control" id="id_preco_venda" name="preco_venda" 
+                   step="0.01" min="0" inputmode="decimal" required>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-end gap-2">        
+        <a href="{% url 'lista_produtos' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
 </form>
 {% endblock %}

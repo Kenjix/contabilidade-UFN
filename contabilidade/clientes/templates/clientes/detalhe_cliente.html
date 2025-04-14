@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/clientes">Clientes</a></li>
+<li class="breadcrumb-item active" aria-current="page">Detalhes do Cliente</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-person-circle me-2"></i>Detalhes do Cliente
+      </h4>
+    </div>
+    <div class="card-body">
+
+      <div class="mb-4">
+        <h5 class="text-muted">Nome</h5>
+        <p class="fs-5 fw-semibold">{{ cliente.nome }}</p>
+      </div>
+
+      <hr>
+
+      <div class="mb-4">
+        <h5 class="text-muted">CPF/CNPJ</h5>
+        <p class="fs-5 fw-semibold">{{ cliente.cpf_cnpj }}</p>
+      </div>
+
+      <hr>
+
+      <div class="mb-4">
+        <h5 class="text-muted">Tipo</h5>
+        <p class="fs-5 fw-semibold">{{ cliente.get_tipo_display }}</p>
+      </div>
+
+      <hr>
+
+      <div>
+        <h5 class="text-muted">Localização</h5>
+        <p class="fs-5 fw-semibold">{{ cliente.cidade }}/{{ cliente.estado }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="mt-4 text-end">
+    <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left-circle me-1"></i> Voltar à Lista
+    </a>
+  </div>
+</div>
+{% endblock %}
