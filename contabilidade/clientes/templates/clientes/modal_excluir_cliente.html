@@ -13,7 +13,7 @@
         </div>
   
         <div class="modal-footer">
-          <form method="post" action="{% url 'excluir_cliente' cliente.id %}">
+          <form method="post" action="{% url 'clientes:excluir_cliente' cliente.id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
           </form>

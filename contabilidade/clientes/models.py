@@ -1,4 +1,3 @@
-# clientes/models.py
 from django.db import models
 from django.contrib import admin
 from django.core.exceptions import ValidationError
@@ -28,7 +27,6 @@ class ClienteFornecedor(models.Model):
     
     @property
     def cpf_cnpj(self):
-        """Retorna CPF ou CNPJ dependendo do tipo de pessoa"""
         return self.cpf if self.tipo_pessoa == 'fisica' else self.cnpj
     
     def clean(self):        

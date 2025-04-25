@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'estoque:dashboard' %}">Estoque</a></li>
+<li class="breadcrumb-item active" aria-current="page">Histórico de Movimentações</li>
+{% endblock %}
+
+{% block title %}Histórico de Movimentações{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Histórico de Movimentações</h1>
+        <div>
+            <a href="{% url 'estoque:nova_movimentacao' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nova Movimentação
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filtros</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="produto" class="form-label">Produto</label>
+                    <select name="produto" id="produto" class="form-select">
+                        <option value="">Todos os produtos</option>
+                        {% for p in produtos %}
+                            <option value="{{ p.id }}" {% if request.GET.produto == p.id|stringformat:"i" %}selected{% endif %}>{{ p.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="tipo" class="form-label">Tipo de Movimentação</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos os tipos</option>
+                        <option value="entrada" {% if request.GET.tipo == 'entrada' %}selected{% endif %}>Entrada</option>
+                        <option value="saida" {% if request.GET.tipo == 'saida' %}selected{% endif %}>Saída</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                    <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-outline-secondary">Limpar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Movimentações</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if movimentacoes %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Produto</th>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Quantidade</th>
+                                <th>Referência</th>
+                                <th>Observação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mov in movimentacoes %}
+                                <tr>
+                                    <td>{{ mov.data|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ mov.produto.nome }}</td>
+                                    <td class="text-center">
+                                        {% if mov.tipo == 'entrada' %}
+                                            <span class="badge bg-success">{{ mov.get_tipo_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ mov.get_tipo_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ mov.quantidade }}</td>
+                                    <td>{{ mov.documento_ref|default:"-" }}</td>
+                                    <td>{{ mov.observacao|truncatechars:50|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info m-3">
+                    Nenhuma movimentação encontrada com os filtros selecionados.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

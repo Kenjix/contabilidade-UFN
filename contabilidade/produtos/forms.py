@@ -4,4 +4,4 @@ from .models import Produto
 class ProdutoForm(forms.ModelForm):
     class Meta:
         model = Produto
-        fields = ['nome', 'preco_compra', 'preco_venda']
+        fields = '__all__'  # Incluir todos os campos do modelo, inclusive o campo ICMS

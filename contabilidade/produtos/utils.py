@@ -1,5 +1,3 @@
-# produtos/utils.py
-
 ICMS_ESTADUAL = {
     'AC': 17.0,
     'AL': 18.0,
@@ -21,7 +19,7 @@ ICMS_ESTADUAL = {
     'PI': 18.0,
     'RJ': 20.0,
     'RN': 18.0,
-    'RS': 18.0,
+    'RS': 17.0,
     'RO': 17.5,
     'RR': 17.0,
     'SC': 17.0,

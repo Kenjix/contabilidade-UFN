@@ -22,7 +22,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
+node_modules/
+package-lock.json
+yarn-error.log
 # Django
 *.log
 local_settings.py

@@ -1,9 +1,16 @@
-from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
-class HomeTemplateView(TemplateView):
-    template_name = 'core/base.html'
+@csrf_exempt
+def index(request):
+    """
+    API endpoint inicial. Retorna uma resposta JSON simples em vez de um template.
+    """
+    return JsonResponse({'message': 'API funcionando corretamente!'})
 
 def pagina_erro_404(request, exception):
-    return render(request, 'core/404.html', status=404)
+    """
+    Handler para erros 404. Retorna uma resposta JSON com o erro.
+    """
+    return JsonResponse({'error': 'Página não encontrada'}, status=404)
 

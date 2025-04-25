@@ -36,10 +36,10 @@
       <td>{{ cliente.get_tipo_display }}</td>
       <td>{{ cliente.cidade }}/{{ cliente.estado }}</td>
       <td>
-        <a href="{% url 'detalhe_cliente' cliente.id %}" class="btn btn-sm btn-primary" title="Ver detalhes">
+        <a href="{% url 'clientes:detalhe_cliente' cliente.id %}" class="btn btn-sm btn-primary" title="Ver detalhes">
           <i class="bi bi-eye"></i>
         </a>
-        <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-sm btn-warning" title="Editar">
+        <a href="{% url 'clientes:editar_cliente' cliente.id %}" class="btn btn-sm btn-warning" title="Editar">
           <i class="bi bi-pencil"></i>
         </a>
         <button type="button" class="btn btn-sm btn-danger" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ cliente.id }}">
@@ -52,7 +52,7 @@
   </tbody>
 </table>
 <div class="d-flex justify-content-end">
-  <a href="{% url 'cadastrar_cliente' %}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">NOVO
+  <a href="{% url 'clientes:cadastrar_cliente' %}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">NOVO
     CLIENTE</a>
 </div>
 {% else %}

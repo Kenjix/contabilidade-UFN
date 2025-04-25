@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %} 
 
 {% block breadcrumbs %}
-<li class="breadcrumb-item"><a href="/clientes">Clientes</a></li>
+<li class="breadcrumb-item"><a href="{% url 'clientes:lista_clientes' %}">Clientes</a></li>
 <li class="breadcrumb-item active" aria-current="page">Cadastro de Cliente</li>
 {% endblock %} 
 
@@ -99,7 +99,7 @@
     </div>
 
     <div class="d-flex justify-content-end gap-2">
-        <a href="{% url 'lista_clientes' %}" class="btn btn-secondary">Cancelar</a>
+        <a href="{% url 'clientes:lista_clientes' %}" class="btn btn-secondary">Cancelar</a>
         <button type="submit" class="btn btn-primary">Salvar</button>
     </div>
 </form>
@@ -118,6 +118,9 @@
             var tipoPessoa = $("#id_tipo_pessoa").val();
             var tipoRelacao = $("#id_tipo").val();
 
+            console.log("Tipo de relação selecionado:", tipoRelacao);
+            console.log("Tipo de pessoa atual:", tipoPessoa);
+
             //Limpa erros anteriores ao mudar os campos
             $(".is-invalid").removeClass("is-invalid");
             $(".invalid-feedback").remove();
@@ -135,7 +138,7 @@
                     );
                 }
             } else {
-                //Se não for fornecedor, habilita a selecao de tipo de pessoa
+                //Se não for fornecedor, habilita a seleção de tipo de pessoa
                 $("#id_tipo_pessoa").prop("disabled", false);
                 $("#msg_fornecedor_info").remove();
             }
@@ -151,8 +154,11 @@
                 $("#id_cpf").val("");
             }
         }
+        
+        // Executa na inicialização para configurar corretamente os campos
         atualizarCamposVisiveis();
 
+        // Monitora alterações nos campos de seleção
         $("#id_tipo_pessoa").on("change", atualizarCamposVisiveis);
         $("#id_tipo").on("change", atualizarCamposVisiveis);
 
