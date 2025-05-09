@@ -43,8 +43,7 @@ def criar_movimentacao(request):
             quantidade = int(data.get('quantidade', 0))
             observacao = data.get('observacao', '')
             documento_ref = data.get('documento_ref', '')
-            
-            # Validação dos dados
+
             if not produto_id:
                 return JsonResponse({'error': 'Produto não informado'}, status=400)
             
@@ -61,14 +60,12 @@ def criar_movimentacao(request):
                 produto = Produto.objects.get(id=produto_id)
             except Produto.DoesNotExist:
                 return JsonResponse({'error': 'Produto não encontrado'}, status=404)
-            
-            # Verificar estoque para saídas
+
             if tipo == 'saida' and produto.quantidade_estoque < quantidade:
                 return JsonResponse({
                     'error': f'Estoque insuficiente para o produto {produto.nome}. Disponível: {produto.quantidade_estoque}'
                 }, status=400)
             
-            # Criar a movimentação
             with transaction.atomic():
                 movimentacao = MovimentacaoEstoque.objects.create(
                     produto=produto,
@@ -163,14 +160,12 @@ def ajuste_estoque(request):
                 produto = Produto.objects.get(id=produto_id)
             except Produto.DoesNotExist:
                 return JsonResponse({'error': 'Produto não encontrado'}, status=404)
-            
-            # Calcula a diferença
+
             diferenca = nova_quantidade - produto.quantidade_estoque
             
             if diferenca == 0:
                 return JsonResponse({'message': 'Não há alteração no estoque'})
-            
-            # Cria uma movimentação para registrar o ajuste
+
             with transaction.atomic():
                 tipo = 'entrada' if diferenca > 0 else 'saida'
                 
@@ -207,21 +202,19 @@ def iniciar_inventario(request):
                 return JsonResponse({'error': 'Responsável não informado'}, status=400)
             
             with transaction.atomic():
-                # Criar inventário
                 inventario = InventarioEstoque.objects.create(
                     responsavel=responsavel,
                     observacoes=observacoes,
                     data_inventario=timezone.now().date()
                 )
                 
-                # Criar itens para todos os produtos
                 produtos = Produto.objects.all()
                 for produto in produtos:
                     ItemInventario.objects.create(
                         inventario=inventario,
                         produto=produto,
                         quantidade_sistema=produto.quantidade_estoque,
-                        quantidade_fisica=produto.quantidade_estoque  # Pré-preenchido com valor do sistema
+                        quantidade_fisica=produto.quantidade_estoque
                     )
                 
                 return JsonResponse({
@@ -282,13 +275,11 @@ def finalizar_inventario(request, inventario_id):
             return JsonResponse({'error': 'Este inventário já foi finalizado'}, status=400)
         
         with transaction.atomic():
-            # Atualiza o estoque com base nos itens do inventário
             for item in inventario.itens.all():
                 produto = item.produto
                 diferenca = item.quantidade_fisica - item.quantidade_sistema
                 
                 if diferenca != 0:
-                    # Registra movimentação para ajustar o estoque
                     tipo = 'entrada' if diferenca > 0 else 'saida'
                     MovimentacaoEstoque.objects.create(
                         produto=produto,
@@ -297,8 +288,6 @@ def finalizar_inventario(request, inventario_id):
                         observacao=f"Ajuste do inventário #{inventario.pk} de {inventario.data_inventario}",
                         documento_ref=f"Inventário #{inventario.pk}"
                     )
-            
-            # Marca como concluído
             inventario.concluido = True
             inventario.save()
             
@@ -317,7 +306,6 @@ def lista_inventarios(request):
     
     inventarios_data = []
     for inventario in inventarios:
-        # Cálculos para o resumo
         total_sistema = sum(item.quantidade_sistema for item in inventario.itens.all())
         total_fisico = sum(item.quantidade_fisica for item in inventario.itens.all())
         itens_com_diferenca = inventario.itens.exclude(quantidade_sistema=F('quantidade_fisica')).count()
@@ -338,8 +326,6 @@ def lista_inventarios(request):
 def detalhe_inventario(request, inventario_id):
     """API para obter detalhes de um inventário"""
     inventario = get_object_or_404(InventarioEstoque, id=inventario_id)
-    
-    # Cálculos para o resumo
     total_sistema = sum(item.quantidade_sistema for item in inventario.itens.all())
     total_fisico = sum(item.quantidade_fisica for item in inventario.itens.all())
     

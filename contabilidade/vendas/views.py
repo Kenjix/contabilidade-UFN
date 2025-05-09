@@ -74,6 +74,7 @@ def criar_venda(request):
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
+@csrf_exempt
 def lista_vendas(request):
     """API para listar todas as vendas"""
     try:
@@ -151,6 +152,7 @@ def lista_vendas(request):
         print(traceback.format_exc())
         return JsonResponse({'error': f'Erro ao listar vendas: {str(e)}'}, status=500)
 
+@csrf_exempt
 def detalhes_venda(request, pk):
     """API para obter detalhes de uma venda"""
     venda = get_object_or_404(Venda, pk=pk)
@@ -211,6 +213,7 @@ def detalhes_venda(request, pk):
     
     return JsonResponse(venda_data)
 
+@csrf_exempt
 def get_produto_info(request, produto_id):
     """API para obter informações de um produto para uso em vendas"""
     try:
@@ -226,7 +229,7 @@ def get_produto_info(request, produto_id):
             estado = estado_cliente.strip().upper()
             print(f"[ICMS] Estado normalizado: '{estado}'")
             
-            from produtos.utils import ICMS_ESTADUAL
+            from contabilidade.utils import ICMS_ESTADUAL
             
             if estado in ICMS_ESTADUAL:
                 icms_aliquota = ICMS_ESTADUAL[estado]

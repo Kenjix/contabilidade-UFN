@@ -18,7 +18,7 @@ import {
 	faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
-import { getClientes, getProdutos, getProdutoInfo } from "../../services/api";
+import { getProdutoInfo } from "../../services/api";
 
 const VendaForm = () => {
 	const { id } = useParams();

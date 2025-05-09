@@ -70,7 +70,6 @@ const ProdutosList = () => {
   if (loading) return <div className="text-center p-5">Carregando produtos...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
-  // Contar produtos com estoque baixo
   const produtosBaixoEstoque = produtos.filter(produto => produto.quantidade_estoque <= 5).length;
 
   return (

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import admin
-from .utils import get_icms_por_estado
+from utils import get_icms_por_estado
+from decimal import Decimal
 
 class Produto(models.Model):
     codigo = models.CharField(max_length=30, blank=True, null=True, verbose_name='Código')
@@ -23,10 +24,10 @@ class Produto(models.Model):
         Calcula o ICMS de crédito com base no estado ou usando o ICMS específico do produto.
         """
         if estado:
-            icms_taxa = get_icms_por_estado(estado)
+            icms_taxa = Decimal(str(get_icms_por_estado(estado)))
         else:
             icms_taxa = self.icms
-        return self.preco_compra * (icms_taxa / 100)
+        return self.preco_compra * (icms_taxa / Decimal('100'))
 
     def calcular_icms_debito(self, estado=None):
         """
@@ -35,12 +36,11 @@ class Produto(models.Model):
         """
         if estado:
             estado_upper = estado.strip().upper() if estado else None
-            icms_taxa = get_icms_por_estado(estado_upper)
-            print(f"[ICMS DEBUG] Produto #{self.id} - Usando alíquota {icms_taxa}% para {estado_upper} conforme tabela")
+            icms_taxa = Decimal(str(get_icms_por_estado(estado_upper)))
         else:
             icms_taxa = self.icms
             
-        return self.preco_venda * (icms_taxa / 100)
+        return self.preco_venda * (icms_taxa / Decimal('100'))
 
     def calcular_custo(self, estado=None):
         """

@@ -2,6 +2,8 @@ from django.db import models
 from clientes.models import ClienteFornecedor
 from produtos.models import Produto
 from django.contrib import admin
+from utils import get_icms_por_estado
+from decimal import Decimal
 
 class Venda(models.Model):
     TIPO_PAGAMENTO = [
@@ -23,6 +25,16 @@ class Venda(models.Model):
 
     def __str__(self):
         return f"Venda para {self.cliente.nome} em {self.data_venda.strftime('%d/%m/%Y')}"
+    
+    def get_icms_percentual(self):
+        """
+        Retorna a alíquota de ICMS aplicada com base no estado do cliente.
+        """
+        if self.cliente and self.cliente.estado:
+            estado = self.cliente.estado.strip().upper()
+            return get_icms_por_estado(estado)
+        return 17.0
+        
 
     def get_valor_total(self):
         """
@@ -69,14 +81,9 @@ class ItemVenda(models.Model):
         Calcula o ICMS do item de venda com base no estado do cliente ou usando o ICMS específico do produto.
         Utiliza o método calcular_icms_debito do produto, que já consulta a tabela ICMS_ESTADUAL.
         """
-        if estado:
-            estado_upper = estado.strip().upper()
-            print(f"[ICMS DEBUG] Item #{self.id} - Calculando ICMS para estado {estado_upper}")
-        else:
-            print(f"[ICMS DEBUG] Item #{self.id} - Estado não especificado, usando alíquota padrão do produto")
-            
         icms_unitario = self.produto.calcular_icms_debito(estado)
-        return icms_unitario * self.quantidade
+        quantidade_decimal = Decimal(str(self.quantidade))
+        return icms_unitario * quantidade_decimal
 
 admin.site.register(Venda)
 admin.site.register(ItemVenda)

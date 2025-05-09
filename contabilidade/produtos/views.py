@@ -35,8 +35,6 @@ def cadastrar_produto(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            
-            # Converter strings para tipos corretos
             if 'preco_compra' in data:
                 data['preco_compra'] = Decimal(str(data['preco_compra']))
             if 'preco_venda' in data:
@@ -82,8 +80,6 @@ def editar_produto(request, id):
     elif request.method == 'POST' or request.method == 'PUT':
         try:
             data = json.loads(request.body)
-            
-            # Converter strings para tipos corretos
             if 'preco_compra' in data:
                 data['preco_compra'] = Decimal(str(data['preco_compra']))
             if 'preco_venda' in data:
@@ -132,7 +128,7 @@ def deletar_produto(request, id):
         produto = get_object_or_404(Produto, id=id)
         produto.delete()
         return JsonResponse({'success': True})
-    elif request.method == 'POST':  # Para compatibilidade com formulários sem JS
+    elif request.method == 'POST':
         produto = get_object_or_404(Produto, id=id)
         produto.delete()
         return JsonResponse({'success': True})

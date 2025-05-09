@@ -5,6 +5,7 @@ import json
 from .forms import ClienteFornecedorForm
 from .models import ClienteFornecedor
 
+@csrf_exempt
 def lista_clientes(request):
     """API para listar todos os clientes"""
     if request.method == 'GET':

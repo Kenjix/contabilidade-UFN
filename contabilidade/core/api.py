@@ -1,7 +1,5 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, Count
-from core.utils import render_to_json, serialize_model
 from vendas.models import Venda, ItemVenda
 from clientes.models import ClienteFornecedor
 from produtos.models import Produto
@@ -9,6 +7,7 @@ from estoque.models import MovimentacaoEstoque
 import json
 from decimal import Decimal
 
+@csrf_exempt
 def dashboard_api(request):
     """API para os dados do dashboard"""
     total_vendas = Venda.objects.count()
@@ -56,8 +55,10 @@ def vendas_api(request):
             'id': venda.id,
             'cliente': {
                 'id': venda.cliente.id,
-                'nome': venda.cliente.nome
+                'nome': venda.cliente.nome,
+                'estado': venda.cliente.estado,
             },
+            'percentual_icms': venda.get_icms_percentual(),
             'data_venda': venda.data_venda.isoformat(),
             'valor_total': float(venda.get_valor_total()),
             'status': venda.status,
@@ -66,11 +67,12 @@ def vendas_api(request):
     
     return JsonResponse(vendas_data, safe=False)
 
+@csrf_exempt
 def venda_detalhe_api(request, venda_id):
     """API para detalhes de uma venda específica"""
     try:
         venda = Venda.objects.get(id=venda_id)
-        itens = ItemVenda.objects.filter(venda=venda)
+        itens = ItemVenda.objects.filter(venda=venda)        
         
         itens_data = []
         for item in itens:
@@ -82,6 +84,7 @@ def venda_detalhe_api(request, venda_id):
                 },
                 'quantidade': item.quantidade,
                 'preco_unitario': float(item.preco_unitario),
+                'percentual_icms': venda.get_icms_percentual(),
                 'subtotal': float(item.quantidade * item.preco_unitario)
             })
         
@@ -89,7 +92,8 @@ def venda_detalhe_api(request, venda_id):
             'id': venda.id,
             'cliente': {
                 'id': venda.cliente.id,
-                'nome': venda.cliente.nome
+                'nome': venda.cliente.nome,
+                'estado': venda.cliente.estado,
             },
             'data_venda': venda.data_venda.isoformat(),
             'valor_total': float(venda.get_valor_total()),
@@ -128,6 +132,7 @@ def finalizar_venda_api(request, venda_id):
     
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
+@csrf_exempt
 def clientes_api(request):
     """API para listagem de clientes e fornecedores"""
     clientes = ClienteFornecedor.objects.all()
@@ -148,6 +153,7 @@ def clientes_api(request):
     
     return JsonResponse(clientes_data, safe=False)
 
+@csrf_exempt
 def cliente_detalhe_api(request, cliente_id):
     """API para detalhes de um cliente específico"""
     try:
@@ -219,6 +225,7 @@ def cliente_criar_editar_api(request, cliente_id=None):
     
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
+@csrf_exempt
 def produtos_api(request):
     """API para listagem de produtos"""
     produtos = Produto.objects.all()

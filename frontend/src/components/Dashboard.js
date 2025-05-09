@@ -18,16 +18,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      try {
-        console.log('Iniciando requisição ao dashboard...');
-        
-        const response = await getDashboardData();
-        console.log('Resposta recebida:', response);
-        
-        setStats(response.data);
-        setLoading(false);      
+      try {        
+        const response = await getDashboardData();   
 
-        
+        setStats(response.data);
+        setLoading(false);  
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);       
         setLoading(false);

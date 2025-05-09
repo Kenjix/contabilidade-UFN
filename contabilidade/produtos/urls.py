@@ -4,7 +4,7 @@ from . import views
 app_name = 'produtos'
 
 urlpatterns = [
-    # APIs para produtos
+    #APIs para produtos
     path('', views.lista_produtos, name='api_lista_produtos'),
     path('cadastrar/', views.cadastrar_produto, name='api_cadastrar_produto'),
     path('<int:id>/', views.detalhe_produto, name='api_detalhe_produto'),
