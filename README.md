@@ -3,8 +3,13 @@
 > **Projeto Acadêmico desenvolvido para a disciplina de Contabilidade Aplicada à Informática da Universidade Franciscana (UFN)** - Sistema de gestão contábil para controle de vendas, estoque, clientes e produtos, com cálculo automático de ICMS baseado no estado do cliente.
 
 ## Sobre o Projeto
+Este sistema foi desenvolvido como trabalho prático da disciplina **Contabilidade Aplicada à Informática** do curso de Sistemas de Informação da **UFN (Universidade Franciscana)**. 
 
-Este software foi criado como projeto prático da disciplina de **Contabilidade Aplicada à Informática** do curso de Sistemas de Informações da UFN (Universidade Franciscana). Ele implementa conceitos contábeis como cálculo de ICMS interestadual, controle de estoque e gestão financeira básica.
+O projeto implementa conceitos contábeis fundamentais como:
+- Cálculo de ICMS interestadual
+- Controle de patrimônio e depreciação
+- Balanço patrimonial
+- Gestão de estoques e movimentações
 
 ## Recursos Principais
 
@@ -78,16 +83,7 @@ yarn install
 
 ### Backend
 
-1. Ative o ambiente virtual (caso não esteja ativado):
-```bash
-# Windows
-venv\Scripts\activate
-
-# Linux/MacOS
-source venv/bin/activate
-```
-
-2. Inicie o servidor Django:
+1. Inicie o servidor Django (com o ambiente virtual ativado):
 ```bash
 cd contabilidade
 python manage.py runserver
@@ -319,16 +315,6 @@ O projeto utiliza `python-decouple` para gerenciar variáveis de ambiente de for
 
 ### Dashboard
 - `GET /api/dashboard/` - Dados do dashboard
-
-## 🎓 Projeto Acadêmico
-
-Este sistema foi desenvolvido como trabalho prático da disciplina **Contabilidade Aplicada à Informática** do curso de Sistemas de Informação da **UFN (Universidade Franciscana)**. 
-
-O projeto implementa conceitos contábeis fundamentais como:
-- Cálculo de ICMS interestadual
-- Controle de patrimônio e depreciação
-- Balanço patrimonial
-- Gestão de estoques e movimentações
 
 ## 📄 Licença
 
