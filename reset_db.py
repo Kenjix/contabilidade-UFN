@@ -15,25 +15,30 @@ from clientes.models import ClienteFornecedor
 from produtos.models import Produto
 from vendas.models import Venda, ItemVenda
 from estoque.models import MovimentacaoEstoque, InventarioEstoque, ItemInventario
+from patrimonio.models import CapitalSocial, CategoriaBem, BemPatrimonial, AquisicaoBem
+from compras.models import CompraMercadoria, ItemCompraMercadoria
 
 def reset_database():
     """Limpa todos os dados existentes no banco de dados"""
     print("Limpando o banco de dados...")
-
     ItemVenda.objects.all().delete()
     Venda.objects.all().delete()
     ItemInventario.objects.all().delete()
     InventarioEstoque.objects.all().delete()
     MovimentacaoEstoque.objects.all().delete()
     Produto.objects.all().delete()
-    ClienteFornecedor.objects.all().delete()
     
+    AquisicaoBem.objects.all().delete()
+    BemPatrimonial.objects.all().delete()
+    CategoriaBem.objects.all().delete()
+    CapitalSocial.objects.all().delete()
+    
+    ClienteFornecedor.objects.all().delete()
     print("Banco de dados limpo com sucesso!")
 
 def criar_clientes_fornecedores():
     """Cria clientes e fornecedores mockados"""
     print("Criando clientes e fornecedores...")
-
     estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
                'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
                'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
@@ -422,6 +427,50 @@ def criar_vendas(clientes, produtos):
         vendas_criadas.append(venda)
         print(f"Venda #{venda.id} criada para {cliente.nome} com {venda.itemvenda_set.count()} itens - Status: {venda.status}")
     
+    # Criar algumas vendas à vista finalizadas específicas
+    print("Criando vendas à vista finalizadas adicionais...")
+    
+    for i in range(5):
+        cliente = random.choice(clientes)
+        dias_atras = random.randint(1, 15)
+        data_venda = timezone.now() - timedelta(days=dias_atras)
+
+        venda = Venda(
+            cliente=cliente,
+            tipo_pagamento='avista',
+            observacao=f'Venda à vista finalizada #{i+1}',
+            status='finalizada',
+            data_venda=data_venda
+        )
+        venda.save()
+
+        num_itens = random.randint(2, 4)
+        produtos_desta_venda = random.sample(produtos, num_itens)
+        
+        for produto in produtos_desta_venda:
+            quantidade = random.randint(1, 2)
+
+            if produto.quantidade_estoque >= quantidade:
+                ItemVenda.objects.create(
+                    venda=venda,
+                    produto=produto,
+                    quantidade=quantidade,
+                    preco_unitario=produto.preco_venda
+                )
+
+                MovimentacaoEstoque.objects.create(
+                    produto=produto,
+                    tipo='saida',
+                    quantidade=quantidade,
+                    observacao=f'Saída por venda #{venda.id}',
+                    documento_ref=f'Venda #{venda.id}'
+                )
+                
+                print(f"Item adicionado à venda à vista #{venda.id}: {quantidade}x {produto.nome}")
+        
+        vendas_criadas.append(venda)
+        print(f"Venda à vista #{venda.id} criada para {cliente.nome} com {venda.itemvenda_set.count()} itens - Status: {venda.status}")
+    
     return vendas_criadas
 
 def criar_inventario(produtos):
@@ -451,6 +500,264 @@ def criar_inventario(produtos):
     print(f"Inventário criado com {inventario.itens.count()} itens")
     return inventario
 
+def criar_capital_social():
+    """Cria registro de capital social da empresa"""
+    print("Criando registro de capital social...")
+    
+    # Criando um registro de capital social inicial da empresa
+    capital_social = CapitalSocial.objects.create(
+        valor=Decimal('500000.00'),
+        data_registro=timezone.now().date() - timedelta(days=365),  # 1 ano atrás
+        descricao="Capital social inicial para abertura da empresa"
+    )
+    
+    # Adicionando um aporte de capital posterior
+    aporte = CapitalSocial.objects.create(
+        valor=Decimal('250000.00'),
+        data_registro=timezone.now().date() - timedelta(days=180),  # 6 meses atrás
+        descricao="Aporte de capital para expansão das operações"
+    )
+    
+    print(f"Capital social criado: R$ {capital_social.valor} em {capital_social.data_registro}")
+    print(f"Aporte de capital criado: R$ {aporte.valor} em {aporte.data_registro}")
+    
+    return [capital_social, aporte]
+
+
+def criar_categorias_bens():
+    """Cria categorias para os bens patrimoniais"""
+    print("Criando categorias de bens patrimoniais...")
+    
+    categorias = [
+        {
+            'nome': 'Imóveis',
+            'descricao': 'Prédios, terrenos e outras propriedades imobiliárias'
+        },
+        {
+            'nome': 'Veículos',
+            'descricao': 'Carros, caminhões e outros meios de transporte'
+        },
+        {
+            'nome': 'Maquinário',
+            'descricao': 'Máquinas e equipamentos industriais'
+        },
+        {
+            'nome': 'Equipamentos de Informática',
+            'descricao': 'Computadores, servidores e periféricos'
+        },
+        {
+            'nome': 'Mobiliário',
+            'descricao': 'Móveis e utensílios de escritório'
+        }
+    ]
+    
+    categorias_criadas = []
+    for cat in categorias:
+        categoria = CategoriaBem.objects.create(
+            nome=cat['nome'],
+            descricao=cat['descricao']
+        )
+        categorias_criadas.append(categoria)
+        print(f"Categoria criada: {categoria.nome}")
+    
+    return categorias_criadas
+
+
+def criar_bens_patrimoniais(fornecedores, categorias):
+    """Cria bens patrimoniais da empresa"""
+    print("Criando bens patrimoniais...")
+    
+    bens = [
+        {
+            'nome': 'Sede da Empresa',
+            'tipo': 'imovel',
+            'categoria': 'Imóveis',
+            'valor_aquisicao': Decimal('1200000.00'),
+            'data_aquisicao': timezone.now().date() - timedelta(days=730),  # 2 anos atrás
+            'vida_util_anos': 25,
+            'taxa_depreciacao_anual': 4.0,
+            'localizacao': 'Rua Principal, 1000, Centro',
+            'nota_fiscal': 'ESC-12345',
+            'forma_pagamento': 'financiado',
+            'parcelas': 120
+        },
+        {
+            'nome': 'Caminhão de Entrega',
+            'tipo': 'veiculo',
+            'categoria': 'Veículos',
+            'valor_aquisicao': Decimal('180000.00'),
+            'data_aquisicao': timezone.now().date() - timedelta(days=365),  # 1 ano atrás
+            'vida_util_anos': 5,
+            'taxa_depreciacao_anual': 20.0,
+            'numero_serie': 'VE-87654321',
+            'localizacao': 'Garagem principal',
+            'nota_fiscal': 'NF-54321',
+            'forma_pagamento': 'parcelado',
+            'parcelas': 36
+        },
+        {
+            'nome': 'Impressora Industrial',
+            'tipo': 'maquina',
+            'categoria': 'Maquinário',
+            'valor_aquisicao': Decimal('45000.00'),
+            'data_aquisicao': timezone.now().date() - timedelta(days=180),  # 6 meses atrás
+            'vida_util_anos': 10,
+            'taxa_depreciacao_anual': 10.0,
+            'numero_serie': 'IMP-987654',
+            'localizacao': 'Setor de produção',
+            'nota_fiscal': 'NF-98765',
+            'forma_pagamento': 'à vista',
+            'parcelas': 1
+        },
+        {
+            'nome': 'Servidor Principal',
+            'tipo': 'equipamento',
+            'categoria': 'Equipamentos de Informática',
+            'valor_aquisicao': Decimal('35000.00'),
+            'data_aquisicao': timezone.now().date() - timedelta(days=90),  # 3 meses atrás
+            'vida_util_anos': 4,
+            'taxa_depreciacao_anual': 25.0,
+            'numero_serie': 'SVR-123456',
+            'localizacao': 'Sala de servidores',
+            'nota_fiscal': 'NF-123456',
+            'forma_pagamento': 'à vista',
+            'parcelas': 1
+        },
+        {
+            'nome': 'Mobília de Escritório',
+            'tipo': 'movel',
+            'categoria': 'Mobiliário',
+            'valor_aquisicao': Decimal('25000.00'),
+            'data_aquisicao': timezone.now().date() - timedelta(days=60),  # 2 meses atrás
+            'vida_util_anos': 10,
+            'taxa_depreciacao_anual': 10.0,
+            'localizacao': 'Escritório administrativo',
+            'nota_fiscal': 'NF-345678',
+            'forma_pagamento': 'parcelado',
+            'parcelas': 6
+        },
+    ]
+    
+    bens_criados = []
+    
+    # Mapear categorias por nome para fácil referência
+    categorias_dict = {c.nome: c for c in categorias}
+    
+    for bem in bens:
+        categoria = categorias_dict[bem['categoria']]
+        fornecedor = random.choice(fornecedores)
+        
+        bem_obj = BemPatrimonial.objects.create(
+            nome=bem['nome'],
+            tipo=bem['tipo'],
+            categoria=categoria,
+            descricao=f"Descrição de {bem['nome']}",
+            valor_aquisicao=bem['valor_aquisicao'],
+            data_aquisicao=bem['data_aquisicao'],
+            fornecedor=fornecedor,
+            vida_util_anos=bem['vida_util_anos'],
+            taxa_depreciacao_anual=bem['taxa_depreciacao_anual'],
+            numero_serie=bem.get('numero_serie', ''),
+            localizacao=bem['localizacao'],
+            ativo=True,
+            baixado=False,
+            nota_fiscal=bem['nota_fiscal'],
+            forma_pagamento=bem['forma_pagamento'],
+            parcelas=bem['parcelas']
+        )
+        
+        # Criar o registro de aquisição para este bem
+        aquisicao = AquisicaoBem.objects.create(
+            bem=bem_obj,
+            data_aquisicao=bem['data_aquisicao'],
+            valor_total=bem['valor_aquisicao'],
+            valor_entrada=bem['valor_aquisicao'] * Decimal('0.2') if bem['forma_pagamento'] != 'à vista' else bem['valor_aquisicao'],
+            forma_pagamento=bem['forma_pagamento'],
+            parcelas=bem['parcelas'],
+            fornecedor=fornecedor,
+            nota_fiscal=bem['nota_fiscal'],
+            observacao=f"Aquisição inicial de {bem['nome']}"
+        )
+        
+        valor_atual = bem_obj.calcular_valor_atual()
+        bens_criados.append(bem_obj)
+        print(f"Bem criado: {bem_obj.nome} - Valor: R$ {bem_obj.valor_aquisicao} - Valor Atual: R$ {valor_atual}")
+    
+    return bens_criados
+
+def criar_compras_mercadorias(fornecedores, produtos):
+    """Cria compras de mercadorias de fornecedores para teste das contas a pagar"""
+    print("Criando compras de mercadorias...")
+    
+    from compras.models import CompraMercadoria, ItemCompraMercadoria
+    
+    compras = [
+        {
+            'fornecedor': random.choice(fornecedores),
+            'valor_total': Decimal('15000.00'),
+            'valor_entrada': Decimal('3000.00'),  # 20% de entrada
+            'forma_pagamento': 'parcelado',
+            'parcelas': 6,
+            'nota_fiscal': 'NF-MERC-001',
+            'status': 'finalizada',
+            'data_compra': timezone.now().date() - timedelta(days=30),
+            'itens': [
+                {'produto_id': 1, 'quantidade': 20, 'preco_unitario': Decimal('300.00')},
+                {'produto_id': 2, 'quantidade': 30, 'preco_unitario': Decimal('300.00')},
+            ]
+        },
+        {
+            'fornecedor': random.choice(fornecedores),
+            'valor_total': Decimal('8500.00'),
+            'valor_entrada': Decimal('1700.00'),  # 20% de entrada
+            'forma_pagamento': 'aprazo',
+            'parcelas': 3,
+            'nota_fiscal': 'NF-MERC-002',
+            'status': 'finalizada',
+            'data_compra': timezone.now().date() - timedelta(days=45),
+            'itens': [
+                {'produto_id': 3, 'quantidade': 15, 'preco_unitario': Decimal('200.00')},
+                {'produto_id': 4, 'quantidade': 25, 'preco_unitario': Decimal('300.00')},
+            ]
+        },
+        {
+            'fornecedor': random.choice(fornecedores),
+            'valor_total': Decimal('12000.00'),
+            'valor_entrada': Decimal('0.00'),  # Sem entrada
+            'forma_pagamento': 'parcelado',
+            'parcelas': 12,
+            'nota_fiscal': 'NF-MERC-003',
+            'status': 'pendente',
+            'data_compra': timezone.now().date() - timedelta(days=15),
+            'itens': [
+                {'produto_id': 5, 'quantidade': 40, 'preco_unitario': Decimal('300.00')},
+            ]
+        }
+    ]
+    
+    compras_criadas = []
+    
+    for compra_data in compras:
+        # Criar a compra
+        itens_data = compra_data.pop('itens')
+        compra = CompraMercadoria.objects.create(**compra_data)
+        
+        # Criar os itens da compra
+        for item_data in itens_data:
+            produto = produtos[item_data['produto_id'] - 1]  # Lista começa em 0
+            ItemCompraMercadoria.objects.create(
+                compra=compra,
+                produto=produto,
+                quantidade=item_data['quantidade'],
+                preco_unitario=item_data['preco_unitario']
+            )
+        
+        valor_pendente = compra.get_valor_pendente()
+        compras_criadas.append(compra)
+        print(f"Compra criada: {compra.fornecedor.nome} - Total: R$ {compra.valor_total} - Pendente: R$ {valor_pendente}")
+    
+    return compras_criadas
+
 @transaction.atomic
 def popular_banco():
     """Popula o banco de dados com dados mockados"""
@@ -462,6 +769,11 @@ def popular_banco():
         vendas = criar_vendas(clientes, produtos)
         inventario = criar_inventario(produtos)
         
+        # Criar dados de patrimônio
+        capital = criar_capital_social()
+        categorias = criar_categorias_bens()
+        bens = criar_bens_patrimoniais(fornecedores, categorias)
+        compras = criar_compras_mercadorias(fornecedores, produtos)
         print("\nDados mockados criados com sucesso!")
         print(f"- {len(clientes)} clientes")
         print(f"- {len(fornecedores)} fornecedores")
@@ -469,6 +781,11 @@ def popular_banco():
         print(f"- {len(movimentacoes)} movimentações de estoque")
         print(f"- {len(vendas)} vendas")
         print(f"- 1 inventário com {inventario.itens.count()} itens")
+        print(f"- {len(capital)} registros de capital social")
+        print(f"- {len(categorias)} categorias de bens patrimoniais")
+        print(f"- {len(bens)} bens patrimoniais")
+        print(f"- {len(compras)} compras de mercadorias")
+        print(f"- {len(compras)} compras de mercadorias")
         
     except Exception as e:
         print(f"Erro ao popular o banco de dados: {str(e)}")

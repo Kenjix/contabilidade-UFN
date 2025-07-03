@@ -39,24 +39,34 @@ const VendaDetail = () => {
 		setMessage(null);
 
 		try {
-			setVenda((prevVenda) => ({
-				...prevVenda,
-				status: "finalizada",
-			}));
-			setMessage({
-				type: "success",
-				text: "Venda finalizada com sucesso!",
-			});
-			await finalizarVenda(id);
-			setTimeout(() => {
-				window.location.reload();
-			}, 1500);
+			const response = await finalizarVenda(id);
+			if (response && response.data && response.data.success) {
+				setVenda((prevVenda) => ({
+					...prevVenda,
+					status: "finalizada",
+				}));
+				setMessage({
+					type: "success",
+					text: response.data.message || "Venda finalizada com sucesso!",
+				});
+				setTimeout(() => {
+					window.location.reload();
+				}, 1500);
+			} else {
+				setMessage({
+					type: "danger",
+					text:
+						response.data && response.data.message
+							? response.data.message
+							: "Não foi possível finalizar a venda.",
+				});
+			}
 		} catch (err) {
-      console.error("Erro ao finalizar a venda:", err);
-      setMessage({
-        type: "danger",
-        text: "Não foi possível finalizar a venda.",
-      });
+			console.error("Erro ao finalizar a venda:", err);
+			setMessage({
+				type: "danger",
+				text: "Não foi possível finalizar a venda.",
+			});
 		}
 	};
 
@@ -202,7 +212,8 @@ const VendaDetail = () => {
 
 								const icms_percentual = item.percentual_icms;
 								const icms_valor =
-									((item.preco_unitario * icms_percentual) / 100) * item.quantidade || 0;
+									((item.preco_unitario * icms_percentual) / 100) *
+										item.quantidade || 0;
 								const estadoCliente =
 									venda.cliente && venda.cliente.estado
 										? venda.cliente.estado

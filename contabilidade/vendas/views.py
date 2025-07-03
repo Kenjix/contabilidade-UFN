@@ -9,6 +9,11 @@ from produtos.models import Produto
 from estoque.models import MovimentacaoEstoque
 from django.db import transaction
 from django.conf import settings
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import ICMS_ESTADUAL
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -61,8 +66,6 @@ def criar_venda(request):
                             documento_ref=f"Venda #{venda.id}"
                         )
                     
-                    venda.atualizar_valores_calculados()
-                    
                     return JsonResponse({
                         'success': True,
                         'id': venda.id,
@@ -83,43 +86,21 @@ def lista_vendas(request):
         vendas_data = []
         for venda in vendas:
             try:
-                estado = venda.cliente.estado
-                if estado:
-                    print(f"Estado do cliente: {estado}")
-                else:
-                    print("Cliente sem estado definido, usando alíquota padrão do produto")
-                    estado = ""
+                estado = venda.cliente.estado if venda.cliente.estado else ""
                 
-                try:
-                    itens = venda.itemvenda_set.all()
-                    valor_total = sum(item.quantidade * item.preco_unitario for item in itens)
-                    
-                    icms_total = 0
-                    for item in itens:
-                        if hasattr(item, 'calcular_icms'):
-                            icms_total += item.calcular_icms(estado)
-                        else:
-                            produto_icms = item.produto.icms if hasattr(item.produto, 'icms') else 0
-                            icms_total += item.quantidade * item.preco_unitario * (produto_icms / 100)
-                    
-                    valor_liquido = valor_total - icms_total
-                    
-                    valor_total = float(valor_total)
-                    icms_total = float(icms_total)
-                    valor_liquido = float(valor_liquido)
-                    
-                except Exception as calc_error:
-                    print(f"Erro ao calcular valores para venda #{venda.id}: {str(calc_error)}")
-                    valor_total = 0.0
-                    icms_total = 0.0
-                    valor_liquido = 0.0
+                itens = venda.itemvenda_set.all()
+                valor_total = sum(item.quantidade * item.preco_unitario for item in itens)
                 
-                icms_total = max(0, round(icms_total, 2))
-                valor_liquido = max(0, round(valor_liquido, 2))
+                # Calcula ICMS total baseado no estado do cliente
+                icms_total = 0
+                for item in itens:
+                    if hasattr(item, 'calcular_icms'):
+                        icms_total += item.calcular_icms(estado)
+                    else:
+                        produto_icms = item.produto.icms if hasattr(item.produto, 'icms') else 0
+                        icms_total += item.quantidade * item.preco_unitario * (produto_icms / 100)
                 
-                print(f"RESULTADO FINAL: Venda #{venda.id} - Valor Total: R${valor_total:.2f}, " +
-                    f"ICMS Total: R${icms_total:.2f} ({"baseado no estado " + estado if estado else "alíquota produto"}), " +
-                    f"Valor Líquido: R${valor_liquido:.2f}")
+                valor_liquido = valor_total - icms_total
                 
                 vendas_data.append({
                     'id': venda.id,
@@ -129,27 +110,18 @@ def lista_vendas(request):
                         'estado': estado
                     },
                     'data_venda': venda.data_venda.isoformat(),
-                    'valor_total': valor_total,
-                    'icms_total': icms_total,
-                    'valor_liquido': valor_liquido,
+                    'valor_total': float(valor_total),
+                    'icms_total': float(max(0, round(icms_total, 2))),
+                    'valor_liquido': float(max(0, round(valor_liquido, 2))),
                     'status': venda.status,
                     'tipo_pagamento': venda.tipo_pagamento
                 })
-            except Exception as venda_error:
-                print(f"Erro ao processar venda #{venda.id}: {str(venda_error)}")
+            except Exception:
                 continue
-        
-        if vendas_data:
-            print("\n--- PRIMEIRO OBJETO JSON A SER RETORNADO ---")
-            import json
-            print(json.dumps(vendas_data[0], indent=2))
         
         return JsonResponse(vendas_data, safe=False)
         
     except Exception as e:
-        import traceback
-        print(f"Erro global ao listar vendas: {str(e)}")
-        print(traceback.format_exc())
         return JsonResponse({'error': f'Erro ao listar vendas: {str(e)}'}, status=500)
 
 @csrf_exempt
@@ -158,9 +130,7 @@ def detalhes_venda(request, pk):
     venda = get_object_or_404(Venda, pk=pk)
     itens = venda.itemvenda_set.all()
     
-    estado = venda.cliente.estado
-    if not estado:
-        estado = ""
+    estado = venda.cliente.estado if venda.cliente.estado else ""
     
     itens_data = []
     for item in itens:
@@ -223,19 +193,12 @@ def get_produto_info(request, produto_id):
         icms_aliquota = float(produto.icms)
         
         estado_cliente = request.GET.get('estado', '')
-        print(f"[ICMS] Estado recebido na requisição: '{estado_cliente}'")
         
+        # Calcula ICMS baseado no estado do cliente
         if estado_cliente:
             estado = estado_cliente.strip().upper()
-            print(f"[ICMS] Estado normalizado: '{estado}'")
-            
-            from contabilidade.utils import ICMS_ESTADUAL
-            
             if estado in ICMS_ESTADUAL:
                 icms_aliquota = ICMS_ESTADUAL[estado]
-                print(f"[ICMS] Alíquota encontrada na tabela para {estado}: {icms_aliquota}%")
-            else:
-                print(f"[ICMS] Estado não encontrado na tabela, usando alíquota padrão do produto: {icms_aliquota}%")
         
         icms_valor = preco_venda * (icms_aliquota / 100)
         
@@ -246,14 +209,9 @@ def get_produto_info(request, produto_id):
             'icms_valor': icms_valor
         }
         
-        print(f"[ICMS] Resposta final: {resposta}")
-        
         return JsonResponse(resposta)
         
     except Exception as e:
-        import traceback
-        print(f"[ICMS ERROR] Erro ao processar info do produto: {str(e)}")
-        print(traceback.format_exc())
         return JsonResponse({'error': f'Erro ao processar informações do produto: {str(e)}'}, status=500)
 
 @csrf_exempt
@@ -267,20 +225,23 @@ def finalizar_venda(request, pk):
     except Venda.DoesNotExist:
         return JsonResponse({'error': f'Venda #{pk} não encontrada'}, status=404)
 
-    if venda.status == 'finalizada':
+    try:
+        if venda.status == 'finalizada':
+            return JsonResponse({
+                'success': True,
+                'id': venda.id,
+                'status': 'finalizada',
+                'message': f'Venda #{venda.id} já estava finalizada'
+            })
+
+        venda.status = 'finalizada'
+        venda.save()
+
         return JsonResponse({
             'success': True,
             'id': venda.id,
             'status': 'finalizada',
-            'message': f'Venda #{venda.id} já estava finalizada'
+            'message': f'Venda #{venda.id} finalizada com sucesso!'
         })
-
-    venda.status = 'finalizada'
-    venda.save()
-
-    return JsonResponse({
-        'success': True,
-        'id': venda.id,
-        'status': 'finalizada',
-        'message': f'Venda #{venda.id} finalizada com sucesso!'
-    })
+    except Exception as e:
+        return JsonResponse({'error': f'Erro ao finalizar venda: {str(e)}'}, status=400)

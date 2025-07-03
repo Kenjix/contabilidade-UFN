@@ -5,6 +5,7 @@ import json
 from decimal import Decimal
 from .forms import ProdutoForm
 from .models import Produto
+from compras.models import ItemCompraMercadoria
 
 @csrf_exempt
 def lista_produtos(request):
@@ -146,4 +147,40 @@ def get_produto_info(request, produto_id):
         })
     except Produto.DoesNotExist:
         return JsonResponse({'error': 'Produto não encontrado'}, status=404)
+
+@csrf_exempt
+def produtos_comprados(request):
+    """API para listar apenas produtos que já foram comprados em compras de mercadorias"""
+    if request.method == 'GET':
+        produtos_ids = ItemCompraMercadoria.objects.values_list('produto_id', flat=True).distinct()
+        produtos = Produto.objects.filter(id__in=produtos_ids)
+        produtos_data = []
+        for produto in produtos:
+            produtos_data.append({
+                'id': produto.id,
+                'codigo': produto.codigo,
+                'nome': produto.nome,
+                'preco_compra': float(produto.preco_compra),
+                'preco_venda': float(produto.preco_venda),
+                'quantidade_estoque': produto.quantidade_estoque,
+                'categoria': produto.categoria,
+                'descricao': produto.descricao,
+                'fornecedor': produto.fornecedor,
+                'icms': float(produto.icms) if hasattr(produto, 'icms') else 17.0,
+                'criado_em': produto.criado_em.isoformat() if produto.criado_em else None
+            })
+        return JsonResponse(produtos_data, safe=False)
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+from rest_framework import viewsets
+from .serializers import ProdutoSerializer
+
+class ProdutoViewSet(viewsets.ModelViewSet):
+    queryset = Produto.objects.all()
+    serializer_class = ProdutoSerializer
+
+    def get_queryset(self):
+        # Exibe apenas produtos que já foram comprados
+        produtos_ids = ItemCompraMercadoria.objects.values_list('produto_id', flat=True).distinct()
+        return Produto.objects.filter(id__in=produtos_ids)
 

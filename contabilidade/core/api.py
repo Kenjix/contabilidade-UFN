@@ -48,9 +48,12 @@ def dashboard_api(request):
 def vendas_api(request):
     """API para listagem de vendas"""
     vendas = Venda.objects.all().order_by('-data_venda')
-    
     vendas_data = []
     for venda in vendas:
+        valor_total = float(venda.get_valor_total())
+        icms_total = float(venda.get_icms_total())
+        valor_liquido = float(venda.get_valor_liquido())
+        
         vendas_data.append({
             'id': venda.id,
             'cliente': {
@@ -60,7 +63,9 @@ def vendas_api(request):
             },
             'percentual_icms': venda.get_icms_percentual(),
             'data_venda': venda.data_venda.isoformat(),
-            'valor_total': float(venda.get_valor_total()),
+            'valor_total': valor_total,
+            'icms_total': icms_total,
+            'valor_liquido': valor_liquido,
             'status': venda.status,
             'tipo_pagamento': venda.tipo_pagamento
         })
@@ -85,8 +90,7 @@ def venda_detalhe_api(request, venda_id):
                 'quantidade': item.quantidade,
                 'preco_unitario': float(item.preco_unitario),
                 'percentual_icms': venda.get_icms_percentual(),
-                'subtotal': float(item.quantidade * item.preco_unitario)
-            })
+                'subtotal': float(item.quantidade * item.preco_unitario)            })
         
         venda_data = {
             'id': venda.id,
@@ -97,6 +101,8 @@ def venda_detalhe_api(request, venda_id):
             },
             'data_venda': venda.data_venda.isoformat(),
             'valor_total': float(venda.get_valor_total()),
+            'icms_total': float(venda.get_icms_total()),
+            'valor_liquido': float(venda.get_valor_liquido()),
             'status': venda.status,
             'tipo_pagamento': venda.tipo_pagamento,
             'observacao': venda.observacao,
@@ -116,14 +122,8 @@ def finalizar_venda_api(request, venda_id):
     if request.method == 'POST':
         try:
             response = finalizar_venda(request, venda_id)
-            
-            if response.status_code == 302:
-                venda = Venda.objects.get(id=venda_id)
-                return JsonResponse({
-                    'success': True,
-                    'id': venda.id,
-                    'status': venda.status
-                })
+            if response.status_code == 200:
+                return response
             else:
                 return JsonResponse({'error': 'Erro ao finalizar venda'}, status=400)
                 

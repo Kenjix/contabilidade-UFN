@@ -24,10 +24,9 @@ const VendaForm = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const isEditMode = !!id;
-
 	const [venda, setVenda] = useState({
 		cliente: "",
-		tipo_pagamento: "a_vista",
+		tipo_pagamento: "avista",
 		observacao: "",
 	});
 	const [itens, setItens] = useState([]);
@@ -44,7 +43,7 @@ const VendaForm = () => {
 		quantidade: 0,
 		preco_unitario: 0.0,
 		icms_valor: 0.0,
-		icms_aliquota: 0.0
+		icms_aliquota: 0.0,
 	});
 
 	useEffect(() => {
@@ -76,7 +75,7 @@ const VendaForm = () => {
 							preco_unitario: item.preco_unitario,
 							subtotal: item.subtotal,
 							icms_valor: item.icms / item.quantidade || 0,
-							icms_aliquota: item.icms_percentual || 0
+							icms_aliquota: item.icms_percentual || 0,
 						}))
 					);
 				}
@@ -94,48 +93,45 @@ const VendaForm = () => {
 
 	const handleClienteChange = async (e) => {
 		const clienteId = e.target.value;
-
 		setVenda({ ...venda, cliente: clienteId });
 
 		let estadoCliente = null;
 		if (clienteId) {
-			const clienteSelecionado = clientes.find(c => c.id === parseInt(clienteId));
+			const clienteSelecionado = clientes.find(
+				(c) => c.id === parseInt(clienteId)
+			);
 			if (clienteSelecionado && clienteSelecionado.estado) {
 				estadoCliente = clienteSelecionado.estado;
-				console.log(`Cliente alterado para: ${clienteSelecionado.nome}, Estado: ${estadoCliente}`);
 			}
 		}
 
+		// Atualiza ICMS do produto atualmente selecionado
 		if (novoItem.produto) {
 			try {
-				console.log(`Atualizando ICMS para o produto atual ${novoItem.produto} com estado do cliente ${estadoCliente || 'não definido'}`);
 				const response = await getProdutoInfo(novoItem.produto, estadoCliente);
 				const produtoInfo = response.data;
-				
+
 				setNovoItem({
 					...novoItem,
 					icms_valor: produtoInfo.icms_valor,
-					icms_aliquota: produtoInfo.icms
+					icms_aliquota: produtoInfo.icms,
 				});
-				
-				console.log(`ICMS do produto atual atualizado: ${produtoInfo.icms}%, Valor ICMS: ${produtoInfo.icms_valor}`);
 			} catch (err) {
 				console.error("Erro ao atualizar ICMS do produto atual:", err);
 			}
 		}
 
+		// Atualiza ICMS de todos os itens já adicionados na venda
 		if (itens.length > 0) {
-			console.log(`Atualizando ICMS para ${itens.length} itens já adicionados na venda`);
-
 			const atualizacaoPromessas = itens.map(async (item) => {
 				try {
 					const response = await getProdutoInfo(item.produto, estadoCliente);
 					const produtoInfo = response.data;
-					
+
 					return {
 						...item,
 						icms_valor: produtoInfo.icms_valor,
-						icms_aliquota: produtoInfo.icms
+						icms_aliquota: produtoInfo.icms,
 					};
 				} catch (err) {
 					console.error(`Erro ao atualizar ICMS do item ${item.produto}:`, err);
@@ -146,7 +142,6 @@ const VendaForm = () => {
 			try {
 				const itensAtualizados = await Promise.all(atualizacaoPromessas);
 				setItens(itensAtualizados);
-				console.log("ICMS de todos os itens da venda foi atualizado com sucesso!");
 			} catch (err) {
 				console.error("Erro ao atualizar ICMS de todos os itens:", err);
 			}
@@ -155,58 +150,52 @@ const VendaForm = () => {
 
 	const handleProdutoChange = async (e) => {
 		const produtoId = e.target.value;
-		
+
 		if (!produtoId) {
 			setNovoItem({
 				produto: "",
 				quantidade: 0,
 				preco_unitario: 0,
 				icms_valor: 0,
-				icms_aliquota: 0
+				icms_aliquota: 0,
 			});
 			return;
 		}
-		
+
 		try {
 			const clienteId = venda.cliente;
 			let estadoCliente = null;
-			
+
 			if (clienteId) {
-				const clienteSelecionado = clientes.find(c => c.id === parseInt(clienteId));
+				const clienteSelecionado = clientes.find(
+					(c) => c.id === parseInt(clienteId)
+				);
 				if (clienteSelecionado && clienteSelecionado.estado) {
 					estadoCliente = clienteSelecionado.estado;
-					console.log(`Cliente selecionado: ${clienteSelecionado.nome}, Estado: ${estadoCliente}`);
 				}
 			}
 
-			if (!estadoCliente) {
-				console.log("Atenção: Cliente sem estado definido ou estado inválido, ICMS será calculado pela alíquota padrão do produto");
-			}
-
-			console.log(`Buscando informações do produto ID ${produtoId} com estado ${estadoCliente || 'não definido'}`);
 			const response = await getProdutoInfo(produtoId, estadoCliente);
 			const produtoInfo = response.data;
-			
+
 			setNovoItem({
 				produto: produtoId,
 				quantidade: 1,
 				preco_unitario: produtoInfo.preco_venda,
 				icms_valor: produtoInfo.icms_valor,
-				icms_aliquota: produtoInfo.icms
+				icms_aliquota: produtoInfo.icms,
 			});
-			
-			console.log(`Produto selecionado: ID ${produtoId}, Estado: ${estadoCliente || 'Não definido'}, ICMS: ${produtoInfo.icms}%, Valor ICMS: ${produtoInfo.icms_valor}`);
 		} catch (err) {
 			console.error("Erro ao obter informações do produto:", err);
 			const produto = produtos.find((p) => p.id === parseInt(produtoId));
-			
+
 			if (produto) {
 				setNovoItem({
 					produto: produtoId,
 					quantidade: 1,
 					preco_unitario: produto.preco_venda,
 					icms_valor: 0,
-					icms_aliquota: 0
+					icms_aliquota: 0,
 				});
 			}
 		}
@@ -246,10 +235,8 @@ const VendaForm = () => {
 			quantidade: 0,
 			preco_unitario: 0.0,
 			icms_valor: 0.0,
-			icms_aliquota: 0.0
+			icms_aliquota: 0.0,
 		});
-		
-		console.log("Item adicionado e campos resetados, incluindo ICMS");
 	};
 
 	const handleRemoveItem = (index) => {
@@ -264,14 +251,15 @@ const VendaForm = () => {
 			0
 		);
 	};
-	
+
 	const calcularTotalIcms = () => {
 		return itens.reduce(
-			(total, item) => total + (item.icms_valor ? item.icms_valor * item.quantidade : 0),
+			(total, item) =>
+				total + (item.icms_valor ? item.icms_valor * item.quantidade : 0),
 			0
 		);
 	};
-	
+
 	const calcularValorLiquido = () => {
 		return calcularTotal() - calcularTotalIcms();
 	};
@@ -344,9 +332,7 @@ const VendaForm = () => {
 	return (
 		<div>
 			<div className="page-header">
-				<h1>
-					{isEditMode ? `Editar Venda #${id}` : "Nova Venda"}
-				</h1>
+				<h1>{isEditMode ? `Editar Venda #${id}` : "Nova Venda"}</h1>
 			</div>
 
 			{message && (
@@ -364,7 +350,7 @@ const VendaForm = () => {
 					<Card.Header className="bg-primary text-white">
 						<div className="d-flex justify-content-between align-items-center">
 							<h5 className="mb-0">
-									{isEditMode ? `Dados da Venda #${id}` : "Dados da Venda"}
+								{isEditMode ? `Dados da Venda #${id}` : "Dados da Venda"}
 							</h5>
 						</div>
 					</Card.Header>
@@ -381,7 +367,8 @@ const VendaForm = () => {
 										<option value="">Selecione um cliente</option>
 										{clientes.map((cliente) => (
 											<option key={cliente.id} value={cliente.id}>
-												{cliente.nome} {cliente.estado ? `(${cliente.estado})` : ''}
+												{cliente.nome}{" "}
+												{cliente.estado ? `(${cliente.estado})` : ""}
 											</option>
 										))}
 									</Form.Select>
@@ -389,15 +376,15 @@ const VendaForm = () => {
 							</Col>
 							<Col md={6}>
 								<Form.Group className="mb-3">
-									<Form.Label>Tipo de Pagamento</Form.Label>
+									<Form.Label>Tipo de Pagamento</Form.Label>{" "}
 									<Form.Select
 										value={venda.tipo_pagamento}
 										onChange={(e) =>
 											setVenda({ ...venda, tipo_pagamento: e.target.value })
-											}
+										}
 									>
-										<option value="a_vista">À Vista</option>
-										<option value="a_prazo">A Prazo</option>
+										<option value="avista">À Vista</option>
+										<option value="aprazo">A Prazo</option>
 									</Form.Select>
 								</Form.Group>
 							</Col>
@@ -411,7 +398,7 @@ const VendaForm = () => {
 										onChange={(e) =>
 											setVenda({ ...venda, observacao: e.target.value })
 										}
-											placeholder="Observações sobre a venda (opcional)"
+										placeholder="Observações sobre a venda (opcional)"
 									/>
 								</Form.Group>
 							</Col>
@@ -421,12 +408,9 @@ const VendaForm = () => {
 
 				<Card className="mb-4">
 					<Card.Header className="bg-primary text-white">
-						<h5 className="mb-0">
-							Itens da Venda
-						</h5>
+						<h5 className="mb-0">Itens da Venda</h5>
 					</Card.Header>
 					<Card.Body>
-						
 						<Row className="mb-3 align-items-end">
 							<Col md={4}>
 								<Form.Group>
@@ -437,10 +421,9 @@ const VendaForm = () => {
 										disabled={!venda.cliente}
 									>
 										<option value="">
-											{!venda.cliente 
-												? "Selecione um cliente primeiro" 
-												: "Selecione um produto"
-											}
+											{!venda.cliente
+												? "Selecione um cliente primeiro"
+												: "Selecione um produto"}
 										</option>
 										{produtos.map((produto) => (
 											<option key={produto.id} value={produto.id}>
@@ -482,10 +465,14 @@ const VendaForm = () => {
 							</Col>
 							<Col md={2}>
 								<Form.Group>
-									<Form.Label>ICMS ({novoItem.icms_aliquota?.toFixed(2)}%)</Form.Label>
+									<Form.Label>
+										ICMS ({novoItem.icms_aliquota?.toFixed(2)}%)
+									</Form.Label>
 									<Form.Control
 										type="text"
-										value={`R$ ${(novoItem.icms_valor * novoItem.quantidade).toFixed(2)}`}
+										value={`R$ ${(
+											novoItem.icms_valor * novoItem.quantidade
+										).toFixed(2)}`}
 										disabled={true}
 										readOnly
 									/>
@@ -535,13 +522,14 @@ const VendaForm = () => {
 													R$ {parseFloat(item.preco_unitario).toFixed(2)}
 												</td>
 												<td className="text-end">
-													R$ {item.icms_valor 
-														? (item.icms_valor * item.quantidade).toFixed(2) 
-														: '0.00'
-													}
+													R${" "}
+													{item.icms_valor
+														? (item.icms_valor * item.quantidade).toFixed(2)
+														: "0.00"}
 												</td>
 												<td className="text-end">
-													R$ {(item.quantidade * item.preco_unitario).toFixed(2)}
+													R${" "}
+													{(item.quantidade * item.preco_unitario).toFixed(2)}
 												</td>
 												<td className="text-center">
 													<Button
@@ -560,9 +548,11 @@ const VendaForm = () => {
 							<tfoot>
 								<tr>
 									<th colSpan="3" className="text-end">
-											ICMS:
+										ICMS:
 									</th>
-									<th className="text-end">R$ {calcularTotalIcms().toFixed(2)}</th>
+									<th className="text-end">
+										R$ {calcularTotalIcms().toFixed(2)}
+									</th>
 									<th></th>
 									<th></th>
 								</tr>
@@ -577,7 +567,9 @@ const VendaForm = () => {
 									<th colSpan="4" className="text-end">
 										Total Líquido:
 									</th>
-									<th className="text-end">R$ {calcularValorLiquido().toFixed(2)}</th>
+									<th className="text-end">
+										R$ {calcularValorLiquido().toFixed(2)}
+									</th>
 									<th></th>
 								</tr>
 							</tfoot>

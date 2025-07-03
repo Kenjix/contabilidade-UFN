@@ -9,11 +9,12 @@ def api_not_found(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
     path('api/clientes/', include('clientes.urls')),
     path('api/produtos/', include('produtos.urls')),
     path('api/vendas/', include('vendas.urls')),
     path('api/estoque/', include('estoque.urls')),
+    path('api/patrimonio/', include('patrimonio.urls')),
+    path('api/compras/', include('compras.urls')),
     
     path('api/', include('core.urls')),
     

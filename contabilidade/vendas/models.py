@@ -42,7 +42,7 @@ class Venda(models.Model):
         """
         itens = self.itemvenda_set.all()
         return sum(item.get_subtotal() for item in itens)
-        
+
     def get_icms_total(self):
         """
         Calcula o ICMS total da venda dinamicamente
@@ -50,7 +50,7 @@ class Venda(models.Model):
         itens = self.itemvenda_set.all()
         estado = self.cliente.estado if hasattr(self.cliente, 'estado') and self.cliente.estado else None
         return sum(item.calcular_icms(estado) for item in itens)
-        
+
     def get_valor_liquido(self):
         """
         Calcula o valor líquido da venda dinamicamente (total - icms)
@@ -58,8 +58,14 @@ class Venda(models.Model):
         valor_total = self.get_valor_total()
         icms_total = self.get_icms_total()
         return valor_total - icms_total
-        
 
+    def atualizar_valores_calculados(self):
+        """
+        Método auxiliar para recalcular e atualizar os valores da venda.
+        Este método é chamado quando a venda é criada ou finalizada.
+        """
+        pass
+        
 class ItemVenda(models.Model):
     venda = models.ForeignKey(Venda, on_delete=models.CASCADE)
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)

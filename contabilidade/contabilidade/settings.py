@@ -4,16 +4,17 @@ Django settings for contabilidade project - API Only Version.
 
 from pathlib import Path
 import os
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-15d^@l@+dr(7@)fi+j5gfym9qn^_mk%p_vgn%$(eo7!2@o6ds6'
+SECRET_KEY = config('SECRET_KEY')
 
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://localhost:3000').split(',')
 
 INSTALLED_APPS = [    
     'django.contrib.admin',
@@ -27,7 +28,9 @@ INSTALLED_APPS = [
     'produtos',
     'vendas',
     'core',
-    'estoque',
+    'estoque',    
+    'patrimonio',
+    'compras',
     
     'rest_framework',
 ]
@@ -48,7 +51,7 @@ ROOT_URLCONF = 'contabilidade.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'static')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -95,16 +98,8 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = '/api/login/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
